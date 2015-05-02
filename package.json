@@ -1,12 +1,9 @@
 {
   "name": "dongle",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "communicate with a 3g/4g usb data dongle using Hayes commands",
   "main": "index.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/manishbhatias/node-dongle.git"
-  },
+  "repository": "manishbhatias/dongle",
   "keywords": [
     "airtel",
     "dongle",
@@ -17,14 +14,14 @@
     "signal strength"
   ],
   "dependencies": {
-    "modem": "^1.0.3",
+    "modem": "manishbhatias/modem",
     "q": "^1.2.0",
     "serialport": "^1.6.3"
   },
   "author": "Manish Bhatia <manishbhatias@gmail.com>",
   "license": "Public Domain",
   "bugs": {
-    "url": "https://github.com/manishbhatias/node-dongle/issues"
+    "url": "https://github.com/manishbhatias/dongle/issues"
   },
-  "homepage": "https://github.com/manishbhatias/node-dongle"
+  "homepage": "https://github.com/manishbhatias/dongle"
 }

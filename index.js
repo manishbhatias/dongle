@@ -102,7 +102,7 @@ dongle.prototype.init = function (device, callback) {
 };
 
 // Get all information and compile it 
-dongle.prototype.check = function () {
+dongle.prototype.check = function (callback) {
     var self = this;
     var deferreds = self.info_commands.map(function (command) {
         var q = Q.defer();
@@ -117,7 +117,7 @@ dongle.prototype.check = function () {
         return q.promise;
     });
     Q.all(deferreds).then(function (res) {
-        self.emit('data', self.info);
+       callback(self.info);
     });
 };
 
@@ -269,10 +269,6 @@ if (require.main === module) {
         d.scanModem(function (modem) {
             if (!modem) process.exit(-1);
 
-            // Hook callback handlers
-            d.on('data', function (r) {
-                console.log(r);
-            });
             //Handler for receiving SMS
             d.on('sms-received', function (smsinfo) {
                 console.log(smsinfo);
@@ -284,8 +280,10 @@ if (require.main === module) {
                 */
             });
             //Do some work here like getting information or sending an SMS
+            d.check(function(r){
+                console.log(r);
+            });
             /*
-            d.check();
             d.sendsms({
                 'text': 'Test SMS from PressPlay. Reply to this SMS and we will echo back',
                 'receiver': '9990917017'
@@ -294,7 +292,9 @@ if (require.main === module) {
         });
     } else {
         d.init(device, function () {
-            d.check();
+            d.check(function(r){
+                console.log(r);
+            });
         });
     }
 }
