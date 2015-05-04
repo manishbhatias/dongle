@@ -123,20 +123,15 @@ dongle.prototype.check = function (callback) {
 
 dongle.prototype.prepare = function (callback) {
     var self = this;
-    self.send("AT+CTZU=1", function (err, status, data) {
+    // enable cell id
+    self.send("AT+CREG=2", function (err, status, data) {
         if (err) return callback(err);
-        if (status !== "OK") return callback(new Error("AT+CTZU=1 failed: " + status + " " + data));
-
-        // enable cell id
-        self.send("AT+CREG=2", function (err, status, data) {
+        if (status !== "OK") return callback(new Error("AT+CREG=2 failed: " + status + " " + data));
+        // enable numeric operator format
+        self.send("AT+COPS=3,2", function (err, status, data) {
             if (err) return callback(err);
-            if (status !== "OK") return callback(new Error("AT+CREG=2 failed: " + status + " " + data));
-            // enable numeric operator format
-            self.send("AT+COPS=3,2", function (err, status, data) {
-                if (err) return callback(err);
-                if (status !== "OK") return callback(new Error("AT+COPS=3,2 failed: " + status + " " + data));
-                callback(null);
-            });
+            if (status !== "OK") return callback(new Error("AT+COPS=3,2 failed: " + status + " " + data));
+            callback(null);
         });
     });
 }
