@@ -21,7 +21,6 @@ dongle.prototype.scanModem = function (callback) {
     // list serial ports:
     serialport.list(function (err, ports) {
         if (err) {
-            console.log('Unable to list ports! ' + err);
             return callback(false);
         }
         self.checkModem(ports, callback);
@@ -32,15 +31,12 @@ dongle.prototype.checkModem = function (ports, callback) {
     var self = this;
     var port = ports.shift();
     if (!port) {
-        console.log('No device found!');
         return callback(false);
     }
-    console.log('Scanning port ' + port.comName);
     self.init(port.comName, function (err, modem) {
         if (err) {
             self.checkModem(ports, callback);
         } else {
-            console.log('Found modem at ' + modem);
             callback(modem);
         }
 
@@ -102,36 +98,39 @@ dongle.prototype.init = function (device, callback) {
 };
 
 // Get all information and compile it 
-dongle.prototype.check = function (callback) {
+dongle.prototype.check = function () {
     var self = this;
     var deferreds = self.info_commands.map(function (command) {
         var q = Q.defer();
         self[command](function (err, res) {
             if (!err) {
                 self.info[command] = res;
-                q.resolve(res);
-            } else {
-                console.log(err);
             }
+	    q.resolve(res);
         });
         return q.promise;
     });
     Q.all(deferreds).then(function (res) {
-       callback(self.info);
+        self.emit('data', self.info);
     });
 };
 
 dongle.prototype.prepare = function (callback) {
     var self = this;
-    // enable cell id
-    self.send("AT+CREG=2", function (err, status, data) {
+    self.send("AT+CTZU=1", function (err, status, data) {
         if (err) return callback(err);
-        if (status !== "OK") return callback(new Error("AT+CREG=2 failed: " + status + " " + data));
-        // enable numeric operator format
-        self.send("AT+COPS=3,2", function (err, status, data) {
+        if (status !== "OK") return callback(new Error("AT+CTZU=1 failed: " + status + " " + data));
+
+        // enable cell id
+        self.send("AT+CREG=2", function (err, status, data) {
             if (err) return callback(err);
-            if (status !== "OK") return callback(new Error("AT+COPS=3,2 failed: " + status + " " + data));
-            callback(null);
+            if (status !== "OK") return callback(new Error("AT+CREG=2 failed: " + status + " " + data));
+            // enable numeric operator format
+            self.send("AT+COPS=3,2", function (err, status, data) {
+                if (err) return callback(err);
+                if (status !== "OK") return callback(new Error("AT+COPS=3,2 failed: " + status + " " + data));
+                callback(null);
+            });
         });
     });
 }
@@ -217,7 +216,6 @@ dongle.prototype.subscriberid = function (callback) {
     ussd.modem = self.modem;
     ussd.callback = callback;
     ussd.parseResponse = function (response_code, message) {
-        this.close();
         var match = message.match(/(\d{10})/);
         if (!match) {
             if (this.callback)
@@ -258,38 +256,18 @@ module.exports = dongle;
 
 if (require.main === module) {
     var d = new dongle();
-    var device = process.argv[2];
-    if (!device || !fs.existsSync(device)) {
-        console.log('No device provided! Scanning for devices');
+    var command = process.argv[2];
         d.scanModem(function (modem) {
             if (!modem) process.exit(-1);
-
-            //Handler for receiving SMS
-            d.on('sms-received', function (smsinfo) {
-                console.log(smsinfo);
-                /*
-                d.sendsms({
-                    'text': smsinfo.text,
-                    'receiver': smsinfo.sender.slice(-10)
-                });
-                */
-            });
-            //Do some work here like getting information or sending an SMS
-            d.check(function(r){
-                console.log(r);
-            });
-            /*
-            d.sendsms({
-                'text': 'Test SMS from PressPlay. Reply to this SMS and we will echo back',
-                'receiver': '9990917017'
-            });
-            */
+	    
+	    if(command && d[command]) {
+		d[command](function(err, r) {
+		    console.log(JSON.stringify(r));
+		    process.exit(0);
+		});
+	    } else {
+		console.log('No command found!');
+		process.exit(-1);
+	    }
         });
-    } else {
-        d.init(device, function () {
-            d.check(function(r){
-                console.log(r);
-            });
-        });
-    }
 }
