@@ -199,7 +199,7 @@ dongle.prototype.cellid = function (callback) {
     self.send("AT+CREG?", function (err, status, data) {
         if (err) return callback(err);
         if (status !== "OK") return callback(new Error("Failed Request AT+CREG?"));
-        var cellid = data.match(/^\+CREG: ([0-2]),([0-5])(, ?([0-9A-F]+), ?([0-9A-F]+)(, ?([0-7]))?)?$/);
+	var cellid = data.match(/^\+CREG: ([0-2]),([0-5])(,\s?["]?([0-9A-F]+)["]?,\s?["]?([0-9A-F]+)["]?(, ?([0-7]))?)?$/);
         if (!cellid) return callback(new Error("Parse Error AT+CREG?"));
         callback(null, {
             stat: parseInt(cellid[2], 10),
