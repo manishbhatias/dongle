@@ -1,7 +1,7 @@
 {
   "name": "dongle",
   "version": "0.1.0",
-  "description": "communicate with a 3g/4g usb data dongle using Hayes commands",
+  "description": "communicate with a 3g/4g dongle using Hayes commands",
   "main": "index.js",
   "repository": "manishbhatias/dongle",
   "keywords": [
@@ -14,7 +14,7 @@
     "signal strength"
   ],
   "dependencies": {
-    "modem": "manishbhatias/modem",
+    "modem": "^1.0.3",
     "q": "latest",
     "serialport": "latest"
   },
